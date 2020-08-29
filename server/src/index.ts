@@ -1,27 +1,30 @@
-import { ApolloServer, gql } from "apollo-server-express";
+import { ApolloServer, gql, IResolvers } from "apollo-server-express";
 import "reflect-metadata";
 import * as express from "express";
-import { ResolverMap } from "./Types/ResolverTypes";
 import { createConnection } from "typeorm";
 import { User } from "./entity/User";
+import { Post } from "./entity/Post";
 
 const startServer = async () => {
-  // Construct a schema, using GraphQL schema language
   const typeDefs = gql`
+    type Post {
+      id: Int!
+      text: String
+    }
+
     type User {
       id: Int!
-      firstName: String!
-      lastName: String!
-      age: Int!
+      name: String!
+      posts: [Post]
     }
 
     type Query {
       hello(name: String!): String
-      users: [User!]
+      findUser(id: Int!): User
     }
 
     type Mutation {
-      createUser(firstName: String!, lastName: String!, age: Int!): Boolean!
+      createUser(name: String): Boolean!
       deleteUser(id: Int!): Boolean!
       updateUser(
         id: Int!
@@ -29,14 +32,15 @@ const startServer = async () => {
         lastName: String
         age: Int
       ): Boolean!
+      createPost(userId: Int!, text: String): Boolean!
     }
   `;
 
-  // Provide resolver functions for your schema fields
-  const resolvers: ResolverMap = {
+  const resolvers: IResolvers = {
     Query: {
       hello: (_, { name }) => "Hello, " + name,
-      users: () => User.find({ order: { id: "ASC" } }),
+      findUser: async (_, { id }) =>
+        await User.findOne({ where: { id }, relations: ["posts"] }),
     },
     Mutation: {
       createUser: async (_, args) => {
@@ -58,8 +62,16 @@ const startServer = async () => {
       },
       deleteUser: async (_, { id }) => {
         try {
-          // const user = await User.findOne({id})
           await User.delete({ id });
+        } catch (error) {
+          return false;
+        }
+        return true;
+      },
+      createPost: async (_, args) => {
+        try {
+          const post = Post.create(args);
+          await Post.insert(post);
         } catch (error) {
           return false;
         }
@@ -80,4 +92,4 @@ const startServer = async () => {
   );
 };
 
-startServer();
+startServer().catch((err) => console.log(err));

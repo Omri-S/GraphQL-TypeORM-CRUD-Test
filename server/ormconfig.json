@@ -6,7 +6,7 @@
   "password": "gnrh2005",
   "database": "graphql-test",
   "synchronize": true,
-  "logging": true,
+  "logging": false,
   "dropSchema": false,
   "entities": ["src/entity/**/*.ts"],
   "migrations": ["src/migration/**/*.ts"],

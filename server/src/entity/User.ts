@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  BaseEntity,
+  OneToMany,
+} from "typeorm";
+import { Post } from "./Post";
 
 @Entity()
 export class User extends BaseEntity {
@@ -6,11 +13,8 @@ export class User extends BaseEntity {
   id: number;
 
   @Column()
-  firstName: string;
+  name: string;
 
-  @Column()
-  lastName: string;
-
-  @Column()
-  age: number;
+  @OneToMany(() => Post, (post) => post.user)
+  posts: Post[];
 }
