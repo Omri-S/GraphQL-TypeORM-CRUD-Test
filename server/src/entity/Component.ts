@@ -9,17 +9,23 @@ import {
 import { User } from "./User";
 
 @Entity()
-export class Post extends BaseEntity {
+export class Component extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  text: string;
-
-  @Column()
   userId: number;
 
-  @ManyToOne(() => User, (user) => user.posts)
+  @ManyToOne(() => User, (user) => user.components)
   @JoinColumn({ name: "userId" })
   user: User;
+
+  @Column()
+  index: number;
+
+  @Column()
+  type: string;
+
+  @Column()
+  text: string;
 }

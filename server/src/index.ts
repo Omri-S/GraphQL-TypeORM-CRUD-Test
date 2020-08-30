@@ -3,19 +3,29 @@ import "reflect-metadata";
 import * as express from "express";
 import { createConnection } from "typeorm";
 import { User } from "./entity/User";
-import { Post } from "./entity/Post";
+import { Component } from "./entity/Component";
+import ComponentType from "./Types/ComponentType";
+import ComponentList from "./Types/ComponentList";
 
 const startServer = async () => {
   const typeDefs = gql`
-    type Post {
+    type Component {
       id: Int!
+      index: String
+      type: String
+      text: String
+    }
+
+    input ComponentInput {
+      index: Int!
+      type: String!
       text: String
     }
 
     type User {
       id: Int!
       name: String!
-      posts: [Post]
+      components: [Component]
     }
 
     type Query {
@@ -32,7 +42,7 @@ const startServer = async () => {
         lastName: String
         age: Int
       ): Boolean!
-      createPost(userId: Int!, text: String): Boolean!
+      createComponent(userId: Int!, components: [ComponentInput]): Boolean
     }
   `;
 
@@ -40,7 +50,7 @@ const startServer = async () => {
     Query: {
       hello: (_, { name }) => "Hello, " + name,
       findUser: async (_, { id }) =>
-        await User.findOne({ where: { id }, relations: ["posts"] }),
+        await User.findOne({ where: { id }, relations: ["components"] }),
     },
     Mutation: {
       createUser: async (_, args) => {
@@ -68,14 +78,22 @@ const startServer = async () => {
         }
         return true;
       },
-      createPost: async (_, args) => {
-        try {
-          const post = Post.create(args);
-          await Post.insert(post);
-        } catch (error) {
+      createComponent: async (_, { userId, components }) => {
+        let componentList: Component[] = [];
+        components.forEach(async (component: ComponentType) => {
+          if (ComponentList.includes(component.type)) {
+            const comp = Component.create({ ...component, userId });
+            componentList.push(comp);
+          }
+        });
+        if (componentList.length !== components.length) {
           return false;
+        } else {
+          componentList.forEach(async (component: ComponentType) => {
+            await Component.insert(component);
+          });
+          return true;
         }
-        return true;
       },
     },
   };

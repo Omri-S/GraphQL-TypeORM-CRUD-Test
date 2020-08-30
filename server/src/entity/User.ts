@@ -5,7 +5,7 @@ import {
   BaseEntity,
   OneToMany,
 } from "typeorm";
-import { Post } from "./Post";
+import { Component } from "./Component";
 
 @Entity()
 export class User extends BaseEntity {
@@ -15,6 +15,6 @@ export class User extends BaseEntity {
   @Column()
   name: string;
 
-  @OneToMany(() => Post, (post) => post.user)
-  posts: Post[];
+  @OneToMany(() => Component, (Component) => Component.user)
+  components: Component[];
 }
